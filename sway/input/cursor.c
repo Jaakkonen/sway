@@ -1304,6 +1304,9 @@ void handle_constraint_destroy(struct wl_listener *listener, void *data) {
 	free(sway_constraint);
 }
 
+#define BLURT printf ("BOINK! %s:%d (%s)\n",\
+                      __FILE__, __LINE__, __func__)
+
 void handle_pointer_constraint(struct wl_listener *listener, void *data) {
 	struct wlr_pointer_constraint_v1 *constraint = data;
 	struct sway_seat *seat = constraint->seat->data;
@@ -1319,14 +1322,36 @@ void handle_pointer_constraint(struct wl_listener *listener, void *data) {
 	sway_constraint->destroy.notify = handle_constraint_destroy;
 	wl_signal_add(&constraint->events.destroy, &sway_constraint->destroy);
 
+	// Cursor can only be constrained if the requested surface is one in focus
 	struct sway_node *focus = seat_get_focus(seat);
+	BLURT;
 	if (focus && focus->type == N_CONTAINER && focus->sway_container->view) {
+		BLURT;
 		struct wlr_surface *surface = focus->sway_container->view->surface;
 		if (surface == constraint->surface) {
+			BLURT;
 			sway_cursor_constrain(seat->cursor, constraint);
 		}
+	} else if (seat->focused_layer->surface == constraint->surface) {
+			// Check XDG surfaces.
+			BLURT;
+			sway_cursor_constrain(seat->cursor, constraint);
 	}
 }
+
+/*
+struct wlr_surface* seat_get_focus_surface(struct sway_seat *seat) {
+
+
+	struct wlr_surface *surface;
+
+	struct sway_node *focus = seat_get_focus(seat);
+	if (focus && focus->type == N_CONTAINER && focus->sway_container->view)
+		return focus->sway_container->view->surface;
+	else if (seat->focused_layer)
+}
+*/
+
 
 void sway_cursor_constrain(struct sway_cursor *cursor,
 		struct wlr_pointer_constraint_v1 *constraint) {
