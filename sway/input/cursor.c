@@ -31,6 +31,13 @@
 #include "sway/tree/workspace.h"
 #include "wlr-layer-shell-unstable-v1-protocol.h"
 
+ 
+#define DEBUG(msg) printf ("%s!\t\t%s:%d (%s)\n", msg,\
+                      __FILE__, __LINE__, __func__)
+#define DEBUGP(msg, ptr) printf ("%s@%p!\t\t%s:%d (%s)\n", msg, ptr,\
+                      __FILE__, __LINE__, __func__)
+
+
 static struct wlr_surface *layer_surface_at(struct sway_output *output,
 		struct wl_list *layer, double ox, double oy, double *sx, double *sy) {
 	struct sway_layer_surface *sway_layer;
@@ -1288,10 +1295,13 @@ void handle_constraint_destroy(struct wl_listener *listener, void *data) {
 	struct wlr_pointer_constraint_v1 *constraint = data;
 	struct sway_cursor *cursor = sway_constraint->cursor;
 
+	DEBUGP("Del constraint", sway_constraint);
+
 	wl_list_remove(&sway_constraint->set_region.link);
 	wl_list_remove(&sway_constraint->destroy.link);
 
 	if (cursor->active_constraint == constraint) {
+		DEBUG("Unsetting active_contraint");
 		warp_to_constraint_cursor_hint(cursor);
 
 		if (cursor->constraint_commit.link.next != NULL) {
@@ -1304,12 +1314,10 @@ void handle_constraint_destroy(struct wl_listener *listener, void *data) {
 	free(sway_constraint);
 }
 
-#define BLURT printf ("BOINK! %s:%d (%s)\n",\
-                      __FILE__, __LINE__, __func__)
-
 void handle_pointer_constraint(struct wl_listener *listener, void *data) {
 	struct wlr_pointer_constraint_v1 *constraint = data;
 	struct sway_seat *seat = constraint->seat->data;
+	
 
 	struct sway_pointer_constraint *sway_constraint =
 		calloc(1, sizeof(struct sway_pointer_constraint));
@@ -1324,17 +1332,21 @@ void handle_pointer_constraint(struct wl_listener *listener, void *data) {
 
 	// Cursor can only be constrained if the requested surface is one in focus
 	struct sway_node *focus = seat_get_focus(seat);
-	BLURT;
-	if (focus && focus->type == N_CONTAINER && focus->sway_container->view) {
-		BLURT;
-		struct wlr_surface *surface = focus->sway_container->view->surface;
-		if (surface == constraint->surface) {
-			BLURT;
+
+	DEBUGP("Request for pointer contraint", constraint);
+
+	// NOTE: seat->focused_layer->surface may be NULL  and focus->sway_container->view->surface not yet updated
+	//			 at the time of pointer_handle_enter. Sending pointer constraint request at that point causes it to
+	//			 not pass as the old surface is still in focus in terms of these variables.
+	if (focus && focus->type == N_CONTAINER && focus->sway_container->view && focus->sway_container->view->surface == constraint->surface) {
+			DEBUGP("sway_cursor_constrain for normal. contraint", constraint);
 			sway_cursor_constrain(seat->cursor, constraint);
-		}
+	} else if (seat->focused_layer == NULL) {
+			DEBUGP("sway_cursor_constrain for focusbug. constraint", constraint);
+			sway_cursor_constrain(seat->cursor, constraint);
 	} else if (seat->focused_layer->surface == constraint->surface) {
-			// Check XDG surfaces.
-			BLURT;
+			// Check layer surfaces
+			DEBUGP("sway_cursor_constrain for XDG. contraint", constraint);
 			sway_cursor_constrain(seat->cursor, constraint);
 	}
 }
@@ -1355,19 +1367,28 @@ struct wlr_surface* seat_get_focus_surface(struct sway_seat *seat) {
 
 void sway_cursor_constrain(struct sway_cursor *cursor,
 		struct wlr_pointer_constraint_v1 *constraint) {
+	//DEBUG("");
 	struct seat_config *config = seat_get_config(cursor->seat);
 	if (!config) {
 		config = seat_get_config_by_name("*");
 	}
+	if (!config) {DEBUG("No config for seat");return;}
+	if (config->allow_constrain == CONSTRAIN_DISABLE) {DEBUG("Constraint not allowed by config"); return;}
 
-	if (!config || config->allow_constrain == CONSTRAIN_DISABLE) {
-		return;
+	if (cursor->active_constraint == NULL && constraint == NULL){/*DEBUG("Constraint already NULL");*/ return;}
+	if (cursor->active_constraint == NULL){DEBUG("Active constraint is NULL");}
+	else { DEBUGP("Active constraint is ", cursor->active_constraint);}
+	if (constraint == NULL){
+		DEBUG("Requested constraint is NULL");
 	}
 
 	if (cursor->active_constraint == constraint) {
+		printf("%p ", constraint);
+		DEBUG("constraint already active on cursor");
 		return;
 	}
 
+	DEBUG("Proceeding to sway_cursor_constrain");
 	wl_list_remove(&cursor->constraint_commit.link);
 	if (cursor->active_constraint) {
 		if (constraint == NULL) {

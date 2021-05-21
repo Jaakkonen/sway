@@ -1,0 +1,16 @@
+00:00:00.004 [ERROR] [wlr] [libseat] [libseat/backend/seatd.c:78] Could not connect to socket /run/seatd.sock: No such file or directory
+00:00:01.224 [ERROR] [wlr] [backend/drm/atomic.c:35] connector DP-2: Atomic commit failed (modeset): Invalid argument
+00:00:01.234 [ERROR] [wlr] [backend/drm/atomic.c:35] connector DP-2: Atomic commit failed (modeset): Invalid argument
+00:00:01.234 [ERROR] [wlr] [backend/drm/drm.c:694] connector DP-2: Failed to initialize renderer:initial page-flip failed
+00:00:01.234 [ERROR] [wlr] [backend/drm/drm.c:777] connector DP-2: Failed to initialize renderer for plane
+00:00:01.234 [ERROR] [sway/config/output.c:417] Failed to commit output DP-2
+00:00:01.245 [ERROR] [wlr] [backend/drm/atomic.c:35] connector DP-2: Atomic commit failed (modeset): Invalid argument
+00:00:01.255 [ERROR] [wlr] [backend/drm/atomic.c:35] connector DP-2: Atomic commit failed (modeset): Invalid argument
+00:00:01.255 [ERROR] [wlr] [backend/drm/drm.c:694] connector DP-2: Failed to initialize renderer:initial page-flip failed
+00:00:01.255 [ERROR] [wlr] [backend/drm/drm.c:777] connector DP-2: Failed to initialize renderer for plane
+2021-05-21 20:11:42 - [swaybg/main.c:299] Found config * for output DP-1 (Acer Technologies XB271HU T4TEE0028502)
+2021-05-21 20:11:42 - [swaybg/main.c:299] Found config * for output eDP-1 (Unknown 0x9D14 0x00000000)
+2021-05-21 20:11:57 - [swaybg/main.c:167] Destroying output eDP-1 (Unknown 0x9D14 0x00000000)
+2021-05-21 20:11:57 - [swaybg/main.c:299] Found config * for output DP-2 (Dell Inc. DELL U2720Q FDYVV13)
+00:01:01.247 [ERROR] [wlr] [libinput] event19 - Gaming KB  Gaming KB : client bug: event processing lagging behind by 14ms, your system is too slow
+

@@ -1,3 +1,4 @@
+.cache
 install_manifest.txt
 *.swp
 *.o
